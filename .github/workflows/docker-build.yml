@@ -28,5 +28,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: chandra219/welcome-app:latest
+          tags: chandra219/welcome-app:latestre
 
