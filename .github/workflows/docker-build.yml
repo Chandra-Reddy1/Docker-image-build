@@ -28,5 +28,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: tags: johndoe/welcome-app:latest
+          tags: johndoe/welcome-app:latest
 
