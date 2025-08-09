@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub') // Jenkins credentials ID
-        IMAGE_NAME = 'chandra219/welcome-app:latest'
+        IMAGE_NAME = 'chandra219/welcome-app:latest123'
     }
 
     stages {
@@ -12,30 +11,23 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Set up Docker Buildx') {
+        
+        stage('Docker Login') {
             steps {
-                // Optional: Install buildx if not present
-                sh 'docker buildx version || docker buildx create --use'
-            }
-        }
-        stage('Login to Docker Hub') {
-            steps {
-                script {
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                     echo $DOCKER_PASS
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    """
                 }
             }
         }
+
         stage('Build and Push Docker Image') {
             steps {
-                script {
-                    sh "docker buildx build --push --tag ${IMAGE_NAME} ."
-                }
+                bat "docker buildx build --push --tag ${IMAGE_NAME} ."
             }
         }
     }
-    post {
-        always {
-            sh 'docker logout'
-        }
-    }
+   
 }
