@@ -4,6 +4,9 @@ pipeline {
     environment {
         IMAGE_NAME = 'chandra219/welcome-app:latest123'
     }
+    options {
+        skipDefaultCheckout(true) // disables the automatic "Declarative: Checkout SCM"
+    }
 
     stages {
         stage('Checkout Code') {
