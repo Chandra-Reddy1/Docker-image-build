@@ -7,7 +7,7 @@ pipeline {
         CONTAINER_NAME        = "welcome-login-app"
         APP_PORT              = "5000"
         DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')
-        DOCKERHUB_USERNAME    = "chandrachandra42428"
+        DOCKERHUB_USERNAME    = "chandra219"
     }
 
     stages {
@@ -23,10 +23,10 @@ pipeline {
             steps {
                 echo 'Verifying required files exist...'
                 bat '''
-                    if exist welcome.py (
-                        echo welcome.py found
+                    if exist app.py (
+                        echo app.py found
                     ) else (
-                        echo welcome.py missing! && exit /b 1
+                        echo app.py missing! && exit /b 1
                     )
                     if exist Dockerfile (
                         echo Dockerfile found
