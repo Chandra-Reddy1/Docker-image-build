@@ -6,11 +6,11 @@ pipeline {
         IMAGE_TAG             = "${BUILD_NUMBER}"
         CONTAINER_NAME        = "welcome-login-app"
         APP_PORT              = "5000"
-        DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')  // 👈 Jenkins credential ID
+        DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')  // Jenkins credential ID
         // credentials() auto-generates:
-        //   DOCKERHUB_CREDENTIALS_USR  → your Docker Hub email (used for login only)
-        //   DOCKERHUB_CREDENTIALS_PSW  → your Docker Hub password
-        DOCKERHUB_USERNAME    = "chandrachandra42428"           // 👈 Your Docker Hub username (not email)
+        //   DOCKERHUB_CREDENTIALS_USR  -> your Docker Hub email (used for login only)
+        //   DOCKERHUB_CREDENTIALS_PSW  -> your Docker Hub password
+        DOCKERHUB_USERNAME    = "chandrachandra42428"           // Your Docker Hub username (not email)
     }
 
     stages {
@@ -26,10 +26,10 @@ pipeline {
             steps {
                 echo 'Verifying required files exist...'
                 bat '''
-                    if exist welcome.py (
-                        echo welcome.py found
+                    if exist app.py (
+                        echo app.py found
                     ) else (
-                        echo welcome.py missing! && exit /b 1
+                        echo app.py missing! && exit /b 1
                     )
                     if exist Dockerfile (
                         echo Dockerfile found
@@ -68,17 +68,19 @@ pipeline {
             steps {
                 echo 'Running smoke test...'
                 bat """
+                    @echo off
+                    setlocal enabledelayedexpansion
                     docker run -d --name test-%IMAGE_NAME%-%BUILD_NUMBER% -p 5001:5000 %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
-                    timeout /t 5 /nobreak
+                    ping -n 8 127.0.0.1 > NUL
                     curl -s -o NUL -w "%%{http_code}" http://localhost:5001/health > health_status.txt
                     set /p HTTP_STATUS=<health_status.txt
                     docker stop test-%IMAGE_NAME%-%BUILD_NUMBER%
                     docker rm test-%IMAGE_NAME%-%BUILD_NUMBER%
                     del health_status.txt
-                    if "%HTTP_STATUS%"=="200" (
+                    if "!HTTP_STATUS!"=="200" (
                         echo Health check passed
                     ) else (
-                        echo Health check failed && exit /b 1
+                        echo Health check failed - Status was: !HTTP_STATUS! && exit /b 1
                     )
                 """
             }
@@ -111,14 +113,16 @@ pipeline {
             steps {
                 echo 'Verifying deployment...'
                 bat """
-                    timeout /t 3 /nobreak
+                    @echo off
+                    setlocal enabledelayedexpansion
+                    ping -n 5 127.0.0.1 > NUL
                     curl -s -o NUL -w "%%{http_code}" http://localhost:%APP_PORT%/health > verify_status.txt
                     set /p HTTP_STATUS=<verify_status.txt
                     del verify_status.txt
-                    if "%HTTP_STATUS%"=="200" (
+                    if "!HTTP_STATUS!"=="200" (
                         echo Deployment verified successfully!
                     ) else (
-                        echo Deployment verification failed! && exit /b 1
+                        echo Deployment verification failed! Status was: !HTTP_STATUS! && exit /b 1
                     )
                 """
             }
