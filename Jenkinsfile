@@ -23,10 +23,10 @@ pipeline {
             steps {
                 echo 'Verifying required files exist...'
                 bat '''
-                    if exist app.py (
-                        echo app.py found
+                    if exist welcome.py (
+                        echo welcome.py found
                     ) else (
-                        echo app.py missing! && exit /b 1
+                        echo welcome.py missing! && exit /b 1
                     )
                     if exist Dockerfile (
                         echo Dockerfile found
