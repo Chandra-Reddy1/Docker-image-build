@@ -6,11 +6,8 @@ pipeline {
         IMAGE_TAG             = "${BUILD_NUMBER}"
         CONTAINER_NAME        = "welcome-login-app"
         APP_PORT              = "5000"
-        DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')  // Jenkins credential ID
-        // credentials() auto-generates:
-        //   DOCKERHUB_CREDENTIALS_USR  -> your Docker Hub email (used for login only)
-        //   DOCKERHUB_CREDENTIALS_PSW  -> your Docker Hub password
-        DOCKERHUB_USERNAME    = "chandrachandra42428"           // Your Docker Hub username (not email)
+        DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')
+        DOCKERHUB_USERNAME    = "chandrachandra42428"
     }
 
     stages {
@@ -55,7 +52,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image..."
+                echo 'Building Docker image...'
                 bat """
                     docker build -t %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% .
                     docker tag %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% %DOCKERHUB_USERNAME%/%IMAGE_NAME%:latest
@@ -80,7 +77,7 @@ pipeline {
                     if "!HTTP_STATUS!"=="200" (
                         echo Health check passed
                     ) else (
-                        echo Health check failed - Status was: !HTTP_STATUS! && exit /b 1
+                        echo Health check failed - Status: !HTTP_STATUS! && exit /b 1
                     )
                 """
             }
@@ -122,7 +119,7 @@ pipeline {
                     if "!HTTP_STATUS!"=="200" (
                         echo Deployment verified successfully!
                     ) else (
-                        echo Deployment verification failed! Status was: !HTTP_STATUS! && exit /b 1
+                        echo Deployment verification failed! Status: !HTTP_STATUS! && exit /b 1
                     )
                 """
             }
