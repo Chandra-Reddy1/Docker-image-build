@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME            = "welcome-login-app"
-        IMAGE_TAG             = "${BUILD_NUMBER}"
+        IMAGE_TAG             = "my-welcome"
         CONTAINER_NAME        = "welcome-login-app"
         APP_PORT              = "5000"
         DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')
@@ -94,18 +94,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Container') {
-            steps {
-                echo 'Deploying container...'
-                bat """
-                    for /f %%i in ('docker ps -q -f name=%CONTAINER_NAME%') do docker stop %%i
-                    for /f %%i in ('docker ps -aq -f name=%CONTAINER_NAME%') do docker rm %%i
-                    docker run -d --name %CONTAINER_NAME% --restart unless-stopped -p %APP_PORT%:5000 %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
-                    echo Container deployed at http://localhost:%APP_PORT%
-                """
-            }
-        }
-
+        
         stage('Verify Deployment') {
             steps {
                 echo 'Verifying deployment...'
@@ -135,7 +124,7 @@ pipeline {
             Image   : ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
             App URL : http://localhost:${APP_PORT}
             Hub     : https://hub.docker.com/r/${DOCKERHUB_USERNAME}/${IMAGE_NAME}
-            Build   : #${BUILD_NUMBER}
+           
             ================================================
             """
         }
