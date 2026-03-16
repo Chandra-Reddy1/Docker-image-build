@@ -65,21 +65,21 @@ pipeline {
 
         // ✅ NEW - Snyk vulnerability scan
         stage('Snyk Security Scan') {
-            steps {
-                echo 'Running Snyk vulnerability scan...'
-                script {
-                    snykSecurity(
-                        snykInstallation: 'snyk',
-                        snykTokenId: 'snyk-token',
-                        failOnIssues: false,
-                        monitorProjectOnBuild: true,
-                        additionalArguments: '--file=requirements.txt --severity-threshold=high'
-                    )
-                }
-                echo 'Snyk scan completed'
-            }
+    steps {
+        echo 'Running Snyk vulnerability scan...'
+        script {
+            snykSecurity(
+                snykInstallation: 'snyk',
+                snykTokenId: 'snyk-token',
+                failOnIssues: false,
+                monitorProjectOnBuild: true,
+                additionalArguments: '--package-manager=pip --file=requirements.txt --severity-threshold=high'
+            )
         }
-
+        echo 'Snyk scan completed'
+    }
+}
+    
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
