@@ -49,7 +49,19 @@ pipeline {
                 echo 'Docker login successful'
             }
         }
-
+        
+        stage('Sonar Scan - Static Code Analysis') {
+    steps {
+        echo 'Running SonarQube analysis...'
+        script {                                      // ✅ wrap in script block
+            withSonarQubeEnv('SonarServer') {
+                def scannerHome = tool 'SonarServer'
+                bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=My-project -Dsonar.sources=."
+            }
+        }
+        echo 'SonarQube analysis completed'
+    }
+}
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
@@ -93,6 +105,7 @@ pipeline {
                 """
             }
         }
+        
 
         
         stage('Verify Deployment') {
