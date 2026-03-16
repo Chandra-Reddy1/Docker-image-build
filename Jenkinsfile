@@ -49,19 +49,37 @@ pipeline {
                 echo 'Docker login successful'
             }
         }
-        
-        stage('Sonar Scan - Static Code Analysis') {
-    steps {
-        echo 'Running SonarQube analysis...'
-        script {                                      // ✅ wrap in script block
-            withSonarQubeEnv('SonarServer') {
-                def scannerHome = tool 'SonarServer'
-                bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=My-project -Dsonar.sources=."
+
+        stage('Sonar Scan') {
+            steps {
+                echo 'Running SonarQube analysis...'
+                script {
+                    withSonarQubeEnv('SonarServer') {
+                        def scannerHome = tool 'SonarServer'
+                        bat "${scannerHome}\\bin\\sonar-scanner.bat -Dsonar.projectKey=My-project -Dsonar.sources=."
+                    }
+                }
+                echo 'SonarQube analysis completed'
             }
         }
-        echo 'SonarQube analysis completed'
-    }
-}
+
+        // ✅ NEW - Snyk vulnerability scan
+        stage('Snyk Security Scan') {
+            steps {
+                echo 'Running Snyk vulnerability scan...'
+                script {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        failOnIssues: false,
+                        monitorProjectOnBuild: true,
+                        additionalArguments: '--file=requirements.txt --severity-threshold=high'
+                    )
+                }
+                echo 'Snyk scan completed'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
@@ -105,9 +123,20 @@ pipeline {
                 """
             }
         }
-        
 
-        
+        stage('Deploy Container') {
+            steps {
+                echo 'Deploying container...'
+                bat """
+                    @echo off
+                    docker stop %CONTAINER_NAME% 2>nul
+                    docker rm %CONTAINER_NAME% 2>nul
+                    docker run -d --name %CONTAINER_NAME% -p %APP_PORT%:5000 --restart unless-stopped %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
+                    echo Container deployed successfully
+                """
+            }
+        }
+
         stage('Verify Deployment') {
             steps {
                 echo 'Verifying deployment...'
@@ -137,7 +166,6 @@ pipeline {
             Image   : ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
             App URL : http://localhost:${APP_PORT}
             Hub     : https://hub.docker.com/r/${DOCKERHUB_USERNAME}/${IMAGE_NAME}
-           
             ================================================
             """
         }
