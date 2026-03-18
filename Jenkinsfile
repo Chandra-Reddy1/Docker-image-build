@@ -67,7 +67,7 @@ pipeline {
         stage('Snyk Security Scan') {
     steps {
         echo 'Running Snyk vulnerability scan...'
-         bat 'pip install -r requirements.txt'
+       bat 'pip install -r requirements.txt --timeout=120 --retries=5 -i https://pypi.org/simple/'
         script {
             snykSecurity(
                 snykInstallation: 'snyk',
