@@ -67,6 +67,7 @@ pipeline {
         stage('Snyk Security Scan') {
     steps {
         echo 'Running Snyk vulnerability scan...'
+         bat 'pip install -r requirements.txt'
         script {
             snykSecurity(
                 snykInstallation: 'snyk',
