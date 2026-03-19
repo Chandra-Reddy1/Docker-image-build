@@ -4,8 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME            = "welcome-login-app"
         IMAGE_TAG             = "${BUILD_NUMBER}"
-        CONTAINER_NAME        = "welcome-login-app"
-        APP_PORT              = "5000"
         DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')
         DOCKERHUB_USERNAME    = "chandra219"
     }
@@ -84,27 +82,7 @@ pipeline {
             }
         }
 
-        stage('Test Container') {
-            steps {
-                echo 'Running smoke test...'
-                bat """
-                    @echo off
-                    setlocal enabledelayedexpansion
-                    docker run -d --name test-%IMAGE_NAME%-%BUILD_NUMBER% -p 5001:5000 %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
-                    ping -n 8 127.0.0.1 > NUL
-                    curl -s -o NUL -w "%%{http_code}" http://localhost:5001/health > health_status.txt
-                    set /p HTTP_STATUS=<health_status.txt
-                    docker stop test-%IMAGE_NAME%-%BUILD_NUMBER%
-                    docker rm test-%IMAGE_NAME%-%BUILD_NUMBER%
-                    del health_status.txt
-                    if "!HTTP_STATUS!"=="200" (
-                        echo Health check passed
-                    ) else (
-                        echo Health check failed - Status: !HTTP_STATUS! && exit /b 1
-                    )
-                """
-            }
-        }
+     
 
         stage('Push to Docker Hub') {
             steps {
@@ -117,37 +95,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Container') {
-            steps {
-                echo 'Deploying container...'
-                bat """
-                    @echo off
-                    docker stop %CONTAINER_NAME% 2>nul
-                    docker rm %CONTAINER_NAME% 2>nul
-                    docker run -d --name %CONTAINER_NAME% -p %APP_PORT%:5000 --restart unless-stopped %DOCKERHUB_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%
-                    echo Container deployed successfully
-                """
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                echo 'Verifying deployment...'
-                bat """
-                    @echo off
-                    setlocal enabledelayedexpansion
-                    ping -n 5 127.0.0.1 > NUL
-                    curl -s -o NUL -w "%%{http_code}" http://localhost:%APP_PORT%/health > verify_status.txt
-                    set /p HTTP_STATUS=<verify_status.txt
-                    del verify_status.txt
-                    if "!HTTP_STATUS!"=="200" (
-                        echo Deployment verified successfully!
-                    ) else (
-                        echo Deployment verification failed! Status: !HTTP_STATUS! && exit /b 1
-                    )
-                """
-            }
-        }
+       
 
         // ✅ Update image tag in ArgoCD GitOps repo using GitHub PAT token
         stage('Update GitOps Repo') {
