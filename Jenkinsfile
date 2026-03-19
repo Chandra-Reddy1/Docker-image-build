@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME            = "welcome-login-app"
-        IMAGE_TAG             = "my-welcome"
+        IMAGE_TAG             = "${BUILD_NUMBER}"
         CONTAINER_NAME        = "welcome-login-app"
         APP_PORT              = "5000"
         DOCKERHUB_CREDENTIALS = credentials('MY-docker-crds')
@@ -56,24 +56,23 @@ pipeline {
             }
         }
 
-        // ✅ NEW - Snyk vulnerability scan
         stage('Snyk Security Scan') {
-    steps {
-        echo 'Running Snyk vulnerability scan...'
-       bat 'pip install -r requirements.txt --timeout=120 --retries=5 -i https://pypi.org/simple/'
-        script {
-            snykSecurity(
-                snykInstallation: 'snyk',
-                snykTokenId: 'snyk-token',
-                failOnIssues: false,
-                monitorProjectOnBuild: true,
-                additionalArguments: '--package-manager=pip --file=requirements.txt --severity-threshold=high'
-            )
+            steps {
+                echo 'Running Snyk vulnerability scan...'
+                bat 'pip install -r requirements.txt --timeout=120 --retries=5 -i https://pypi.org/simple/'
+                script {
+                    snykSecurity(
+                        snykInstallation: 'snyk',
+                        snykTokenId: 'snyk-token',
+                        failOnIssues: false,
+                        monitorProjectOnBuild: true,
+                        additionalArguments: '--package-manager=pip --file=requirements.txt --severity-threshold=high'
+                    )
+                }
+                echo 'Snyk scan completed'
+            }
         }
-        echo 'Snyk scan completed'
-    }
-}
-    
+
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
@@ -149,6 +148,45 @@ pipeline {
                 """
             }
         }
+
+        // ✅ Update image tag in ArgoCD GitOps repo using GitHub PAT token
+        stage('Update GitOps Repo') {
+            steps {
+                echo 'Updating image tag in GitOps repo...'
+                withCredentials([string(credentialsId: 'my-git-token', variable: 'GIT_TOKEN')]) {
+                    bat """
+                        @echo off
+
+                        REM Clean up any previous clone
+                        if exist argocd-demo-app rd /s /q argocd-demo-app
+
+                        REM Clone using GitHub PAT token directly in URL
+                        git clone https://%GIT_TOKEN%@github.com/Chandra-Reddy1/argocd-demo-app.git
+                        cd argocd-demo-app
+
+                        REM Replace the image tag in deployment.yaml using PowerShell
+                        powershell -Command "(Get-Content k8s/deployment.yaml) -replace 'image: chandra219/welcome-login-app:[^\\s]+', 'image: chandra219/welcome-login-app:%IMAGE_TAG%' | Set-Content k8s/deployment.yaml"
+
+                        REM Verify the change was applied
+                        powershell -Command "Select-String -Path k8s/deployment.yaml -Pattern 'image:'"
+
+                        REM Commit and push using token
+                        git config user.email "jenkins@ci.com"
+                        git config user.name "Jenkins CI"
+                        git add k8s/deployment.yaml
+                        git commit -m "ci: update welcome-login-app image tag to %IMAGE_TAG%"
+                        git push https://%GIT_TOKEN%@github.com/Chandra-Reddy1/argocd-demo-app.git main
+
+                        REM Clean up clone
+                        cd ..
+                        rd /s /q argocd-demo-app
+
+                        echo GitOps repo updated successfully with tag %IMAGE_TAG%
+                    """
+                }
+            }
+        }
+
     }
 
     post {
@@ -160,6 +198,7 @@ pipeline {
             Image   : ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
             App URL : http://localhost:${APP_PORT}
             Hub     : https://hub.docker.com/r/${DOCKERHUB_USERNAME}/${IMAGE_NAME}
+            GitOps  : https://github.com/Chandra-Reddy1/argocd-demo-app
             ================================================
             """
         }
