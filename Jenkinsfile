@@ -12,13 +12,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                echo 'Checking out source code...'
-                checkout scm
-            }
-        }
-
         stage('Verify Files') {
             steps {
                 echo 'Verifying required files exist...'
