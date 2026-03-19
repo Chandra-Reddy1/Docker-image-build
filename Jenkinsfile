@@ -82,8 +82,6 @@ pipeline {
             }
         }
 
-     
-
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing image to Docker Hub...'
@@ -94,8 +92,6 @@ pipeline {
                 """
             }
         }
-
-       
 
         // ✅ Update image tag in ArgoCD GitOps repo using GitHub PAT token
         stage('Update GitOps Repo') {
@@ -139,19 +135,19 @@ pipeline {
 
     post {
         success {
+            // ✅ Removed APP_PORT reference — was causing the red status
             echo """
             ================================================
             BUILD AND DEPLOY SUCCESSFUL
             ================================================
-            Image   : ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-            App URL : http://localhost:${APP_PORT}
-            Hub     : https://hub.docker.com/r/${DOCKERHUB_USERNAME}/${IMAGE_NAME}
+            Image   : ${env.DOCKERHUB_USERNAME}/${env.IMAGE_NAME}:${env.IMAGE_TAG}
+            DockerHub: https://hub.docker.com/r/${env.DOCKERHUB_USERNAME}/${env.IMAGE_NAME}
             GitOps  : https://github.com/Chandra-Reddy1/argocd-demo-app
             ================================================
             """
         }
         failure {
-            echo 'Pipeline failed! Cleaning up test containers...'
+            echo 'Pipeline failed! Cleaning up...'
             bat "docker rm -f test-%IMAGE_NAME%-%BUILD_NUMBER% 2>nul || exit /b 0"
         }
         always {

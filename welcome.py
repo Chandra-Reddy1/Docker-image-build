@@ -8,7 +8,7 @@ app.secret_key = "welcome-app-secret-key"
 USERS = {
     "admin": "admin123",
     "alice": "alice123",
-    "bob":   "bob456",
+    "bob":   "chnadra",
 }
 
 # ─── HTML Templates ──────────────────────────────────────────────────────────
@@ -95,8 +95,8 @@ LOGIN_HTML = """
 </head>
 <body>
     <div class="card">
-        <div class="logo">🔐</div>
-        <h1>Welcome Back</h1>
+        <div class="logo">🙌</div>
+        <h1>Welcome to my world</h1>
         <p class="sub">Sign in to access your dashboard</p>
 
         {% if error %}
@@ -139,7 +139,7 @@ WELCOME_HTML = """
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Welcome, {{ username }}!</title>
+    <title>Welcome to my page, {{ username }}!</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
