@@ -33,7 +33,13 @@ pipeline {
             }
         }
 
-        
+        stage('Docker Login') {
+            steps {
+                echo 'Logging in to Docker Hub...'
+                bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
+                echo 'Docker login successful'
+            }
+        }
 
         stage('Sonar Scan') {
             steps {
@@ -62,13 +68,6 @@ pipeline {
                     )
                 }
                 echo 'Snyk scan completed'
-            }
-        }
-        stage('Docker Login') {
-            steps {
-                echo 'Logging in to Docker Hub...'
-                bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
-                echo 'Docker login successful'
             }
         }
 
