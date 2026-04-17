@@ -13,6 +13,7 @@ USERS = {
 
 # ─── HTML Templates ──────────────────────────────────────────────────────────
 
+
 LOGIN_HTML = """
 <!DOCTYPE html>
 <html lang="en">
