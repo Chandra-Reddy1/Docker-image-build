@@ -28,4 +28,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: chandra219/welcome-app:newlatest-present1
+          tags: chandra219/welcome-0
