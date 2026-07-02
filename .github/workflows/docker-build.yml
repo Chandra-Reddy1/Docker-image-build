@@ -4,7 +4,7 @@ name: Build Docker Image
 on:
   push:
     branches:
-      - main  # or 'master' depending on your repo
+      - main  # or 'master' depending on your repo 
 
 jobs:
   build:
