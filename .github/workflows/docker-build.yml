@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to Amazon ECR Public
+name: Build and Push Python App to Amazon ECR Public
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: public.ecr.aws/o5l5z4t1
+  ECR_REGISTRY: public.ecr.aws/o5l5z4t1/my-app
   ECR_REPOSITORY: my-app
 
 jobs:
@@ -15,26 +15,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      # 1. Get Python application source code
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      # 2. Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      # 4. Login to Amazon ECR Public
       - name: Login to Amazon ECR Public
         run: |
           aws ecr-public get-login-password --region us-east-1 | \
           docker login --username AWS --password-stdin public.ecr.aws
 
-      - name: Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            public.ecr.aws/o5l5z4t1/my-app:latest
-            public.ecr.aws/o5l5z4t1/my-app:${{ github.sha }}
+      # 5. Build Python application Docker image
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} \
+            .
+
+      # 6. Push Docker image to ECR Public
+      - name: Push Docker image to ECR Public
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
