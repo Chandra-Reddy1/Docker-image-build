@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REGISTRY: public.ecr.aws/o5l5z4t1/my-app
+  ECR_REGISTRY: public.ecr.aws/o5l5z4t1
   ECR_REPOSITORY: my-app
 
 jobs:
