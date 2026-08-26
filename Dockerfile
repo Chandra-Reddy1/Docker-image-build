@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["python", "-u", "welcome.py"]
+CMD ["python", "-u", "welcome.py"] 
