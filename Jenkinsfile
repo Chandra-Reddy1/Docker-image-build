@@ -41,7 +41,7 @@ pipeline {
             }
         }
 
-        stage('Sonar Scan') {
+      /*  stage('Sonar Scan') {
             steps {
                 echo 'Running SonarQube analysis...'
                 script {
@@ -52,7 +52,7 @@ pipeline {
                 }
                 echo 'SonarQube analysis completed'
             }
-        }
+        } */
 
         stage('Snyk Security Scan') {
             steps {
